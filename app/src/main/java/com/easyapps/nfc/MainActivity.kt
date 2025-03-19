@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.easyapps.nfc.Utils.parcelable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.easyapps.nfc.Value.magStripModeEmulated
 import com.easyapps.nfc.databinding.ActivityMainBinding
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onNewIntent(intent: Intent) {
         if (true/* is working*/) {
             super.onNewIntent(intent)
-            tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            tag = intent.parcelable(NfcAdapter.EXTRA_TAG)
             Log.i("EMVemulator", "Tag detected")
             cardReading(tag)
         }
@@ -113,12 +114,23 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
 
 
     fun canSetPreferredCardEmulationService(): Boolean {
-        return Build.VERSION.SDK_INT >= 21 && this.cardEmulation != null;
+        return true && this.cardEmulation != null;
     }
 
     private var error = ""
     private fun cardReading(tag: Tag?) {
-        tagcomm = IsoDep.get(tag)
+        if (tag == null) {
+            Log.e("EMVemulator", "Tag is null")
+            Toast.makeText(applicationContext, "Ошибка: тег NFC не найден", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        tagcomm = IsoDep.get(tag) ?: run {
+            Log.e("EMVemulator", "IsoDep.get() returned null")
+            Toast.makeText(applicationContext, "Ошибка: устройство не поддерживает IsoDep", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         try {
             tagcomm.connect()
         } catch (e: IOException) {
@@ -135,14 +147,12 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 else -> readCardMagStripe()
             }
         } catch (e: IOException) {
-            Log.e("EMVemulator", "Error tranceive: " + e.message)
-            error = "Reading card data ... Error tranceive: " + e.message
+            Log.e("EMVemulator", "Error transceive: " + e.message)
+            error = "Error transceive: " + e.message
             Toast.makeText(applicationContext, error, Toast.LENGTH_SHORT).show()
-            return
-        } finally {
-            tagcomm.close()
         }
     }
+
 
     private fun readCardWithOurCommands() {
         commands?.map {
