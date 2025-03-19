@@ -191,7 +191,8 @@ class MainActivity : AppCompatActivity(), OnFragmentInteractionListener {
         setContentView(binding.root)
         binding.navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        nfcintent = PendingIntent.getActivity(this, 0, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE)
+        nfcintent = PendingIntent.getActivity(this, 0, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_MUTABLE)
         cardEmulation = CardEmulation.getInstance(nfcAdapter)
         fragmentTransaction(ReaderFragment.newInstance(), ReaderFragment.TAG)
         createDir()
